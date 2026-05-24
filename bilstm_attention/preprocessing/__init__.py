@@ -5,4 +5,7 @@ __all__ = [
     "Vocabulary",
     "TextPreprocessor",
     "FeedbackDataset",
+    "collate_fn",
+    "create_dataloaders",
+    "download_data",
 ]
