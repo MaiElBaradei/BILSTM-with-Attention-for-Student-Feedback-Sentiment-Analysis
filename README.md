@@ -36,3 +36,27 @@
 ├── pyproject.toml                  # Build config + all dependency groups
 └── setup.py
 ```
+
+---
+
+## Installation
+
+### Requirements
+
+- Python ≥ 3.11
+- PyTorch ≥ 2.2 (CUDA recommended for training)
+
+### Local install
+
+```bash
+# Clone the repository
+git clone https://github.com/MaiElBaradei/BILSTM-with-Attention-for-Student-Feedback-Sentiment-Analysis.git
+cd BILSTM-with-Attention-for-Student-Feedback-Sentiment-Analysis
+
+# Create a virtual environment
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+
+# Install core dependencies
+pip install -e .
+```
