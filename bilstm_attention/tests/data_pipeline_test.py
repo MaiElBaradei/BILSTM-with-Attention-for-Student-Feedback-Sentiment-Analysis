@@ -1,6 +1,6 @@
 """
 To run the verification test, execute this script from the root directory of the project:
-    python -m tests.pipeline_test 
+    python -m tests.data_pipeline_test 
 It will generate mock text data, preprocess it, and create dataloaders to ensure that all components of the pipeline are functioning correctly together. 
 The test includes checks for data integrity, batch structure, and sequence length ordering.
 """

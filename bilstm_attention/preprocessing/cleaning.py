@@ -2,7 +2,13 @@ import re
 from typing import Set
 
 def clean_text(text: str) -> str:
-    """Applies standardized lowercasing, HTML removal, and character normalization."""
+    """
+    Applies standardized lowercasing, HTML removal, and character normalization.
+    Args:
+        text (str): The text to clean.
+    Returns:
+        str: The cleaned text.
+    """
     text = text.lower()
     text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"https?://\S+|www\.\S+", " ", text)

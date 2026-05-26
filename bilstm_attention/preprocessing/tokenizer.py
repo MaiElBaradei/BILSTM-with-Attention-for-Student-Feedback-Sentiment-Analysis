@@ -3,7 +3,9 @@ from .cleaning import clean_text, load_stopwords
 from .vocabulary import Vocabulary
 
 class TextPreprocessor:
-    """Coordinates vocabulary state, data string execution, and transformation."""
+    """
+    Coordinates vocabulary state, data string execution, and transformation.
+    """
     def __init__(
         self,
         max_seq_len: int = 256,

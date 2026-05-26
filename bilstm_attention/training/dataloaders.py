@@ -6,7 +6,13 @@ from data.splits import split_dataset
 from data.dataset import FeedbackDataset
 
 def collate_fn(batch):
-    """Sort by descending length so pack_padded_sequence works out-of-the-box."""
+    """
+    Sort by descending length so pack_padded_sequence works out-of-the-box.
+    Args:
+        batch: A list of tuples (input_tensor, length_tensor, label_tensor).
+    Returns:
+        Tuple of tensors (inputs, lengths, labels) sorted by descending length.
+    """
     inputs, lengths, labels = zip(*batch)
     inputs = torch.stack(inputs)
     lengths = torch.stack(lengths)
@@ -25,7 +31,20 @@ def create_dataloaders(
     seed: int = 42,
     num_workers: int = 0,
 ) -> Tuple[DataLoader, DataLoader, DataLoader, List[str], List[int]]:
-    """Coordinates splits, fits preprocessor vocab, and initializes DataLoaders."""
+    """
+    Coordinates splits, fits preprocessor vocab, and initializes DataLoaders.
+    Args:
+        texts (List[str]): List of text samples.
+        labels (List[int]): List of corresponding labels.
+        preprocessor (TextPreprocessor): Preprocessor instance for tokenization.
+        batch_size (int): Batch size for DataLoaders.
+        test_size (float): Proportion of the dataset to include in the test split.
+        val_size (float): Proportion of the training dataset to include in the validation split.
+        seed (int): Random seed for reproducibility.
+        num_workers (int): Number of subprocesses to use for data loading.
+    Returns:
+        Tuple[DataLoader, DataLoader, DataLoader, List[str], List[int]]: Train DataLoader, validation DataLoader, test DataLoader, test texts, and test labels.
+    """
     
     # Partition text structures
     train_texts, val_texts, test_texts, train_labels, val_labels, test_labels = split_dataset(

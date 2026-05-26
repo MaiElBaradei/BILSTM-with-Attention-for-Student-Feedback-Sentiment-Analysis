@@ -8,7 +8,17 @@ def split_dataset(
     val_size: float = 0.1,
     seed: int = 42,
 ) -> Tuple[List[str], List[str], List[str], List[int], List[int], List[int]]:
-    """Splits texts and labels into stratified train, validation, and test arrays."""
+    """
+    Splits texts and labels into stratified train, validation, and test arrays.
+    Args:
+        texts (List[str]): List of text samples.
+        labels (List[int]): List of corresponding labels.
+        test_size (float): Proportion of the dataset to include in the test split.
+        val_size (float): Proportion of the training dataset to include in the validation split.
+        seed (int): Random seed for reproducibility.
+    Returns:
+        Tuple[List[str], List[str], List[str], List[int], List[int], List[int]]: Train texts, validation texts, test texts, train labels, validation labels, test labels.   
+    """
     train_val_texts, test_texts, train_val_labels, test_labels = train_test_split(
         texts, labels, test_size=test_size, random_state=seed, stratify=labels
     )

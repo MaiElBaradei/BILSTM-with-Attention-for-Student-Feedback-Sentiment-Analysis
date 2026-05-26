@@ -7,6 +7,10 @@ class FeedbackDataset(Dataset):
     """
     Scalable Dataset that tokenizes on-the-fly via __getitem__.
     This reduces the memory footprint and safely leverages DataLoader multi-processing.
+    Args:
+        texts (List[str]): List of text samples.
+        labels (List[int]): List of corresponding labels.
+        preprocessor (TextPreprocessor): Preprocessor instance for tokenization.
     """
     def __init__(self, texts: List[str], labels: List[int], preprocessor: TextPreprocessor):
         self.texts = texts

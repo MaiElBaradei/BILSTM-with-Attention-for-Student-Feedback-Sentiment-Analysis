@@ -5,6 +5,13 @@ from tqdm import tqdm
 def download_data(
     url: str = "https://data.mendeley.com/public-files/datasets/fvtfjyvw7d/files/256a4429-4fc3-4872-9a7c-26b44a820a8c/file_downloaded",
 ):
+    """
+    Downloads the dataset from the specified URL and saves it to the 'data' directory.
+    If the dataset already exists, it skips the download.
+    Args:
+        url (str): The URL from which to download the dataset.
+    Returns:
+        None"""
     os.makedirs("data", exist_ok=True)
     destination = os.path.join("data", "data.csv")
     if os.path.exists(destination):
