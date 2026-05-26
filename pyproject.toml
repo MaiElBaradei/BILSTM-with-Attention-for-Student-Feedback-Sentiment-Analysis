@@ -16,6 +16,11 @@ dependencies = [
     "numpy>=1.26",
     "pandas>=2.2",
     "scikit-learn>=1.4",
+    "tqdm>=4.66",
+    "matplotlib>=3.8",
+    "requests>=2.33.1",
+    "nltk>=3.8",
+    "wandb>=0.18",
 ]
 
 [project.optional-dependencies]
