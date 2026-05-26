@@ -40,5 +40,10 @@ dev    = [
     "autopep8==2.3.2",
 ]
 
+llm = [
+    "transformers>=4.40",
+    "sentencepiece>=0.2",   
+]
+
 [project.scripts]
 bilstm-train = "train:main"

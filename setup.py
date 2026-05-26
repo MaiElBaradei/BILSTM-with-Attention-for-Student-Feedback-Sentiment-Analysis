@@ -24,6 +24,10 @@ setup(
             "mypy>=1.13",
             "black>=24.10",
         ],
+        "llm": [
+            "transformers>=4.40",
+            "sentencepiece>=0.2",
+        ],
     },
     entry_points={
         "console_scripts": [
