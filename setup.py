@@ -24,15 +24,13 @@ setup(
             "mypy>=1.13",
             "black>=24.10",
         ],
-<<<<<<< HEAD
-        "viz": [
-            "seaborn>=0.13",
-            "wordcloud>=1.9",
-=======
         "llm": [
             "transformers>=4.40",
             "sentencepiece>=0.2",
->>>>>>> main
+        ],
+        "viz": [
+            "seaborn>=0.13",
+            "wordcloud>=1.9",
         ],
     },
     entry_points={

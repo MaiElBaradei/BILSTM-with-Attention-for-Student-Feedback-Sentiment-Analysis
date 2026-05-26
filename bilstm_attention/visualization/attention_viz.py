@@ -136,3 +136,58 @@ def visualize_attention(
 
     return fig
 
+def visualize_batch(
+    model: torch.nn.Module,
+    samples: List[str],
+    labels: List[int],
+    label_names: List[str],
+    preprocessor,
+    device: str,
+    output_dir: str = "visualizations",
+    max_samples: int = 5,
+) -> None:
+    """
+    Run inference on raw-text samples (standard vocab path), extract
+    attention weights, and save one enriched PNG per sample.
+    """
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    dev = torch.device(device)
+    model.eval()
+
+    for i, (text, label) in enumerate(zip(samples[:max_samples], labels[:max_samples])):
+        tokens = preprocessor.get_tokens(text)
+        if not tokens:
+            print(f"  Sample {i}: empty after preprocessing — skipping.")
+            continue
+
+        padded, length = preprocessor.encode_padded(text)
+        x = torch.tensor([padded], dtype=torch.long).to(dev)
+        l_tensor = torch.tensor([length], dtype=torch.long).to(dev)
+
+        with torch.no_grad():
+            logits, alpha = model(x, l_tensor)
+
+        if alpha is None:
+            print(f"  Sample {i}: attention disabled — skipping visualisation.")
+            continue
+
+        probs = torch.softmax(logits[0], dim=-1).cpu().numpy()
+        pred = int(probs.argmax())
+        attn_weights = alpha[0, :length].cpu().numpy()
+
+        snippet = text[:70] + ("…" if len(text) > 70 else "")
+        title = f'"{snippet}"'
+
+        save_path = f"{output_dir}/sample_{i:02d}.png"
+        fig = visualize_attention(
+            tokens,
+            attn_weights,
+            title=title,
+            save_path=save_path,
+            true_label=label,
+            pred_label=pred,
+            label_names=label_names,
+            probs=probs,
+        )
+        plt.close(fig)
+        print(f"  Saved {save_path}")
