@@ -1,0 +1,10 @@
+# This file is part of the BILSTM-with-Attention-for-Student-Feedback-Sentiment-Analysis project.
+
+# Preprocessing module for the BILSTM with Attention model.
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.4
+nltk>=3.8
+tqdm>=4.66
+torch>=2.2
+requests>=2.33.1
