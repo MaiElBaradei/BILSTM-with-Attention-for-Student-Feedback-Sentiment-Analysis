@@ -2,8 +2,8 @@ import torch
 from torch.utils.data import DataLoader
 from typing import List, Tuple
 from preprocessing.tokenizer import TextPreprocessor
-from data.splits import split_dataset
-from data.dataset import FeedbackDataset
+from .splits import split_dataset
+from .dataset import FeedbackDataset
 
 def collate_fn(batch):
     """

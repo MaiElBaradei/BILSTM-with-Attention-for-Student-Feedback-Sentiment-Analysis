@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 from typing import List
-from preprocessing.tokenizer import TextPreprocessor
+from .tokenizer import TextPreprocessor
 
 class FeedbackDataset(Dataset):
     """
