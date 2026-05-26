@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["bilstm_attention*"]
+
+[project]
+name = "bilstm-attention"
+version = "0.1.0"
+description = "BiLSTM + Bahdanau Attention for student feedback sentiment analysis"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.2",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "scikit-learn>=1.4",
+]
+
+[project.optional-dependencies]
+
+dev    = [
+    "pytest==8.3.4",
+    "Sphinx==8.1.3",
+    "sphinx-rtd-theme==3.0.2",
+    "sphinx-autodoc-typehints==2.5.0",
+    "pytest-cov==6.0.0",
+    "mypy==1.13.0",
+    "flake8==7.1.1",
+    "tox==4.23.2",
+    "black==24.10.0",
+    "pytest-mock==3.14.0",
+    "pytest-watcher==0.4.3",
+    "autopep8==2.3.2",
+]
+
+[project.scripts]
+bilstm-train = "train:main"

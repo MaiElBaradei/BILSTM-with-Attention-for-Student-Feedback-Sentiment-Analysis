@@ -18,16 +18,13 @@
 │   │   ├── cleaning.py             # Regex text cleaning & stopword fallback dict
 │   │   ├── vocabulary.py           # Word-to-index tracking (<PAD>/<UNK>)
 │   │   └── tokenizer.py            # TextPreprocessor core execution engine
-│   │
-│   ├── data/                       # NEW: Modular persistence and data structures
-│   │   ├── __init__.py             
 │   │   ├── dataset.py              # Scalable, lazy-loading FeedbackDataset
 │   │   ├── download.py             # Chunked data stream fetcher
+│   │   ├── dataloaders.py          # Multiprocess create_dataloaders + collate_fn
 │   │   └── splits.py               # Stratified dataset partitioner
 │   │
 │   ├── training/                   # MODIFIED: Included pipeline dataloaders
 │   │   ├── __init__.py             
-│   │   ├── dataloaders.py          # Multiprocess create_dataloaders + collate_fn
 │   │   └── trainer.py              # Trainer: fit, evaluate, predict, checkpointing
 │   │
 │   └── visualization/
@@ -48,4 +45,28 @@
 │
 ├── pyproject.toml                  # Build config + all dependency groups
 └── setup.py
+```
+
+---
+
+## Installation
+
+### Requirements
+
+- Python ≥ 3.11
+- PyTorch ≥ 2.2 (CUDA recommended for training)
+
+### Local install
+
+```bash
+# Clone the repository
+git clone https://github.com/MaiElBaradei/BILSTM-with-Attention-for-Student-Feedback-Sentiment-Analysis.git
+cd BILSTM-with-Attention-for-Student-Feedback-Sentiment-Analysis
+
+# Create a virtual environment
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+
+# Install core dependencies
+pip install -e .
 ```
