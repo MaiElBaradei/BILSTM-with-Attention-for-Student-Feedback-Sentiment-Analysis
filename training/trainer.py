@@ -51,6 +51,48 @@ class Trainer:
             "val_f1": [],
         }
 
+        Path(config.checkpoint_dir).mkdir(parents=True, exist_ok=True)
+
+
+    def save_checkpoint(self, epoch: int, val_f1: float, is_best: bool) -> None:
+        state = {
+            "epoch": epoch,
+            "model_state": self.model.state_dict(),
+            "optimizer_state": self.optimizer.state_dict(),
+            "scheduler_state": self.scheduler.state_dict(),
+            "best_val_f1": self.best_val_f1,
+            "history": self.history,
+            "config": self.config.__dict__,
+        }
+        ckpt_path = Path(self.config.checkpoint_dir) / f"epoch_{epoch:03d}.pt"
+        torch.save(state, ckpt_path)
+        if is_best:
+            best_path = Path(self.config.checkpoint_dir) / "best.pt"
+            torch.save(state, best_path)
+            print(f"  [*] Best model saved  val_f1={val_f1:.4f}  ->  {best_path}")
+            try:
+                import wandb
+
+                if wandb.run is not None:
+                    artifact = wandb.Artifact("best-model", type="model")
+                    artifact.add_file(str(best_path))
+                    wandb.log_artifact(artifact)
+            except ImportError:
+                pass
+
+    def load_checkpoint(self, path: str) -> None:
+        state = torch.load(path, map_location=self.device, weights_only=False)
+        self.model.load_state_dict(state["model_state"])
+        self.optimizer.load_state_dict(state["optimizer_state"])
+        self.scheduler.load_state_dict(state["scheduler_state"])
+        self.best_val_f1 = state["best_val_f1"]
+        self.start_epoch = state["epoch"] + 1
+        self.history = state.get("history", self.history)
+        print(
+            f"Resumed from {path}  "
+            f"(epoch {state['epoch']},  best_val_f1={self.best_val_f1:.4f})"
+        )
+
 
     def _run_epoch(
         self,
@@ -145,6 +187,8 @@ class Trainer:
             else:
                 patience_counter += 1
                 print(f"  No improvement ({patience_counter}/{self.config.patience})")
+
+            self.save_checkpoint(epoch, val_m["f1"], is_best)
 
             if patience_counter >= self.config.patience:
                 print(f"\nEarly stopping triggered at epoch {epoch + 1}.")
