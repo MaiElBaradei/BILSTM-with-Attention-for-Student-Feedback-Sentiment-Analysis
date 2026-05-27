@@ -219,3 +219,8 @@ __marimo__/
 
 # misc
 data/
+wandb/
+embeddings_files/
+checkpoints/
+.env
+*.pt
