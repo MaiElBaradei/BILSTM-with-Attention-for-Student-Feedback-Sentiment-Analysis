@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from typing import List, Tuple
-from preprocessing.tokenizer import TextPreprocessor
+from .tokenizer import TextPreprocessor
 from .splits import split_dataset
 from .dataset import FeedbackDataset
 
