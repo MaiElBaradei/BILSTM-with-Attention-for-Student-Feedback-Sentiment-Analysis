@@ -21,6 +21,7 @@ dependencies = [
     "requests>=2.33.1",
     "nltk>=3.8",
     "wandb>=0.18",
+    "pytest>=8.3.4",
 ]
 
 [project.optional-dependencies]
