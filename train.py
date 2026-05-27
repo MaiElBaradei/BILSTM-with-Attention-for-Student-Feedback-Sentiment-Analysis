@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import random
 import sys
 import unicodedata
 from pathlib import Path
@@ -16,6 +17,11 @@ from bilstm_attention.preprocessing import download_data
 from bilstm_attention.embeddings import download_glove_default
 from bilstm_attention.model.bilstm import BiLSTMClassifier
 from bilstm_attention.training.trainer import Trainer
+from bilstm_attention.visualization.attention_viz import (
+    visualize_batch,
+    visualize_llm_batch,
+    plot_training_history,
+)
 
 
 
@@ -71,6 +77,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--resume_from",     default=None,
                    help="Path to a .pt checkpoint to resume training from")
 
+    # Visualisation
+    p.add_argument("--viz_output_dir",  default="visualizations")
+    p.add_argument("--viz_samples",     type=int, default=5)
+    
     # Weights & Biases
     p.add_argument("--use_wandb",       action=argparse.BooleanOptionalAction, default=True,
                    help="Enable W&B tracking (--no-use_wandb to disable)")
@@ -189,6 +199,7 @@ def compute_class_weights(labels: list, num_classes: int) -> torch.Tensor:
 # Standard (vocab) path
 
 def run_standard(config: Config, device: torch.device) -> None:
+    import matplotlib.pyplot as plt
     from bilstm_attention.preprocessing import TextPreprocessor
     from bilstm_attention.preprocessing import create_dataloaders
     from bilstm_attention.embeddings.glove import get_glove_embedding_layer
@@ -260,11 +271,33 @@ def run_standard(config: Config, device: torch.device) -> None:
     _print_report(report)
     _wandb_log_report(report)
 
+    hist_path = f"{config.viz_output_dir}/training_history.png"
+    plt.close(plot_training_history(trainer.history, save_path=hist_path))
+    print(f"Training history saved → {hist_path}")
+    _wandb_log_images([hist_path], "plots")
+
+    if config.use_attention:
+        print(f"\nGenerating {config.viz_samples} attention visualisations…")
+        rng = random.Random(config.seed)
+        idx = rng.sample(range(len(test_texts)), min(config.viz_samples, len(test_texts)))
+        visualize_batch(
+            model=model,
+            samples=[test_texts[i] for i in idx],
+            labels=[test_labels[i] for i in idx],
+            label_names=config.label_names,
+            preprocessor=preprocessor,
+            device=str(device),
+            output_dir=config.viz_output_dir,
+            max_samples=config.viz_samples,
+        )
+        import glob
+        _wandb_log_images(glob.glob(f"{config.viz_output_dir}/sample_*.png"), "attention")
 
 
 # LLM embedding path
 
 def run_llm(config: Config, device: torch.device) -> None:
+    import matplotlib.pyplot as plt
     from bilstm_attention.embeddings.llm_embeddings import LLMEmbedder, create_llm_dataloaders
 
     texts, labels = load_csv(config)
@@ -315,6 +348,28 @@ def run_llm(config: Config, device: torch.device) -> None:
     _print_report(report)
     _wandb_log_report(report)
 
+    hist_path = f"{config.viz_output_dir}/training_history.png"
+    plt.close(plot_training_history(trainer.history, save_path=hist_path))
+    print(f"Training history saved → {hist_path}")
+    _wandb_log_images([hist_path], "plots")
+
+    if config.use_attention:
+        print(f"\nGenerating {config.viz_samples} attention visualisations…")
+        rng = random.Random(config.seed)
+        idx = rng.sample(range(len(test_texts)), min(config.viz_samples, len(test_texts)))
+        visualize_llm_batch(
+            model=model,
+            samples=[test_texts[i] for i in idx],
+            labels=[test_labels[i] for i in idx],
+            label_names=config.label_names,
+            embedder=embedder,
+            device=str(device),
+            output_dir=config.viz_output_dir,
+            max_samples=config.viz_samples,
+            max_length=config.max_seq_len,
+        )
+        import glob
+        _wandb_log_images(glob.glob(f"{config.viz_output_dir}/sample_*_llm.png"), "attention")
 
 
 # Helpers
@@ -359,6 +414,17 @@ def _wandb_log_report(report: dict) -> None:
         pass
 
 
+def _wandb_log_images(paths: list[str], prefix: str) -> None:
+    """Log PNG files to W&B as Images."""
+    try:
+        import wandb
+        if wandb.run is None:
+            return
+        wandb.log({f"{prefix}/{Path(p).stem}": wandb.Image(p)
+                   for p in paths if Path(p).exists()})
+    except ImportError:
+        pass
+
 
 # Entry point
 
@@ -372,6 +438,7 @@ def main() -> None:
     print(f"Attention: {'ON' if config.use_attention else 'OFF (ablation)'}")
     print(f"Embedding: {config.embedding_type}")
 
+    Path(config.viz_output_dir).mkdir(parents=True, exist_ok=True)
 
     if config.use_wandb:
         if config.wandb_run_name is None:

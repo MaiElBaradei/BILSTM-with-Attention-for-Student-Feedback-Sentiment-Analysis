@@ -191,3 +191,92 @@ def visualize_batch(
         )
         plt.close(fig)
         print(f"  Saved {save_path}")
+
+
+def visualize_llm_batch(
+    model: torch.nn.Module,
+    samples: List[str],
+    labels: List[int],
+    label_names: List[str],
+    embedder,
+    device: str,
+    output_dir: str = "visualizations",
+    max_samples: int = 5,
+    max_length: int = 256,
+) -> None:
+    """Same as visualize_batch but for the LLM-embedding path."""
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    dev = torch.device(device)
+    model.eval()
+
+    for i, (text, label) in enumerate(zip(samples[:max_samples], labels[:max_samples])):
+        tokens = embedder.get_tokens(text, max_length=max_length)
+        if not tokens:
+            continue
+
+        hidden, mask = embedder.embed([text], max_length=max_length)
+        length = int(mask[0].sum().item())
+        lengths_t = torch.tensor([length], dtype=torch.long).to(dev)
+        hidden_t = hidden.to(dev)
+
+        with torch.no_grad():
+            logits, alpha = model(hidden_t, lengths_t)
+
+        if alpha is None:
+            print(f"  Sample {i}: attention disabled — skipping.")
+            continue
+
+        probs = torch.softmax(logits[0], dim=-1).cpu().numpy()
+        pred = int(probs.argmax())
+        attn_weights = alpha[0, :length].cpu().numpy()
+        vis_tokens = tokens[:length]
+
+        snippet = text[:70] + ("…" if len(text) > 70 else "")
+        title = f'"{snippet}"'
+
+        save_path = f"{output_dir}/sample_{i:02d}_llm.png"
+        fig = visualize_attention(
+            vis_tokens,
+            attn_weights,
+            title=title,
+            save_path=save_path,
+            true_label=label,
+            pred_label=pred,
+            label_names=label_names,
+            probs=probs,
+        )
+        plt.close(fig)
+        print(f"  Saved {save_path}")
+
+def plot_training_history(
+    history: dict,
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Plot loss and macro-F1 curves from the trainer's history dict."""
+    epochs = range(1, len(history["train_loss"]) + 1)
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+    axes[0].plot(epochs, history["train_loss"], label="train")
+    axes[0].plot(epochs, history["val_loss"], label="val")
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Loss")
+    axes[0].set_title("Cross-Entropy Loss")
+    axes[0].legend()
+    axes[0].grid(alpha=0.3)
+
+    axes[1].plot(epochs, history["train_f1"], label="train")
+    axes[1].plot(epochs, history["val_f1"], label="val")
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Macro F1")
+    axes[1].set_title("Macro F1 Score")
+    axes[1].legend()
+    axes[1].grid(alpha=0.3)
+
+    plt.tight_layout()
+
+    if save_path:
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(save_path, dpi=150, bbox_inches="tight")
+
+    return fig
