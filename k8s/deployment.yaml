@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bilstm-serve
+  labels:
+    app: bilstm-serve
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bilstm-serve
+  template:
+    metadata:
+      labels:
+        app: bilstm-serve
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: cn01
+
+      containers:
+        - name: serve
+          image: bilstm-serve:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CHECKPOINT_DIR
+              value: /app/checkpoints
+          volumeMounts:
+            - name: checkpoints
+              mountPath: /app/checkpoints
+              readOnly: true
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+      volumes:
+        - name: checkpoints
+          persistentVolumeClaim:
+            claimName: bilstm-checkpoints-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bilstm-checkpoints-pvc
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 200Mi

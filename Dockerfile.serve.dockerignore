@@ -1,0 +1,28 @@
+# Intentionally DOES NOT exclude checkpoints/ so best.pt and
+# preprocessor.pkl are available to the COPY instruction in Dockerfile.serve.
+
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+*.ipynb
+.ipynb_checkpoints
+
+# Heavy runtime dirs not needed in the serving image
+data/
+visualizations/
+embeddings/
+embeddings_files/
+
+# Dev / CI
+.env
+.env.*
+Dockerfile
+*.md
+k8s/

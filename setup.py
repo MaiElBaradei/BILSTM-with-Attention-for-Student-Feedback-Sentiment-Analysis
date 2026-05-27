@@ -32,6 +32,10 @@ setup(
             "seaborn>=0.13",
             "wordcloud>=1.9",
         ],
+        "serve": [
+            "fastapi>=0.115",
+            "uvicorn[standard]>=0.32",
+        ],
     },
     entry_points={
         "console_scripts": [

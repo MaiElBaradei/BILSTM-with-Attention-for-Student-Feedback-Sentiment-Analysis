@@ -1,0 +1,15 @@
+# NodePort exposes the service on every node at a fixed high port.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bilstm-serve
+spec:
+  selector:
+    app: bilstm-serve
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      nodePort: 30800 

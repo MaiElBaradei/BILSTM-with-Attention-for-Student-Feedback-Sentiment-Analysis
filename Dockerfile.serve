@@ -1,0 +1,41 @@
+# Lightweight CPU-only serving image (~400 MB vs ~4 GB for CUDA). Not supporting llm-based
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install CPU-only PyTorch first (avoids pulling the CUDA wheel)
+RUN pip install --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
+# Install project dependencies (no viz extras needed for serving)
+COPY pyproject.toml setup.py ./
+COPY bilstm_attention/__init__.py bilstm_attention/__init__.py
+RUN pip install --no-cache-dir -e ".[serve]"
+
+# Copy source
+COPY bilstm_attention/ bilstm_attention/
+COPY serve/ serve/
+
+# Bake the trained weights directly into the image.
+# checkpoints/ is allowed through Dockerfile.serve.dockerignore.
+# If these files do not exist yet, run training first:
+#   python train.py  (or: docker compose run trainer ...)
+RUN mkdir -p checkpoints
+COPY checkpoints/best.pt          checkpoints/best.pt
+COPY checkpoints/preprocessor.pkl checkpoints/preprocessor.pkl
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s \
+    CMD curl -sf http://localhost:8000/health || exit 1
+
+CMD ["uvicorn", "serve.app:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "1"]
