@@ -28,6 +28,10 @@ setup(
             "transformers>=4.40",
             "sentencepiece>=0.2",
         ],
+        "viz": [
+            "seaborn>=0.13",
+            "wordcloud>=1.9",
+        ],
     },
     entry_points={
         "console_scripts": [

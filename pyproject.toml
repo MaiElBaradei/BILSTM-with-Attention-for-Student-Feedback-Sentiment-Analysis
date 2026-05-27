@@ -46,5 +46,10 @@ llm = [
     "sentencepiece>=0.2",   
 ]
 
+viz = [
+    "seaborn>=0.13",
+    "wordcloud>=1.9",
+]
+
 [project.scripts]
 bilstm-train = "train:main"

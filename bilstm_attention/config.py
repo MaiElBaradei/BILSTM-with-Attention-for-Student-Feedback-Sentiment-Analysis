@@ -49,6 +49,10 @@ class Config:
     checkpoint_dir: str = "checkpoints"
     resume_from: Optional[str] = None  # path to a .pt checkpoint
 
+    # Visualization
+    viz_output_dir: str = "visualizations"
+    viz_samples: int = 5  # number of samples to visualize
+  
     # Weights & Biases
     use_wandb: bool = True
     wandb_project: str = "bilstm-sentiment"
