@@ -9,7 +9,9 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, f1_score, classification_report
-
+from ..visualization.confusion_viz import plot_confusion_matrix
+import matplotlib.pyplot as plt
+import numpy as np
 
 from ..config import Config
 
@@ -146,6 +148,13 @@ class Trainer:
             train_m = self._run_epoch(train_loader, train=True)
             val_m = self._run_epoch(val_loader, train=False)
 
+            # Collect predictions for the validation set and log confusion matrix
+            try:
+                all_labels, all_preds = self.get_preds_labels(val_loader)
+                self.compute_and_log_confusion(all_labels, all_preds, epoch)
+            except Exception:
+                pass
+
             self.scheduler.step(val_m["f1"])
 
             for k in ("loss", "acc", "f1"):
@@ -236,6 +245,44 @@ class Trainer:
             zero_division=0,
         )
         return report
+
+
+    def get_preds_labels(self, loader: DataLoader) -> tuple[list, list]:
+        """Return (all_labels, all_preds) for samples from loader."""
+        self.model.eval()
+        all_preds: list = []
+        all_labels: list = []
+        with torch.no_grad():
+            for inputs, lengths, labels in loader:
+                inputs = inputs.to(self.device)
+                lengths = lengths.to(self.device)
+                logits, _ = self.model(inputs, lengths)
+                all_preds.extend(logits.argmax(-1).cpu().tolist())
+                all_labels.extend(labels.tolist())
+        return all_labels, all_preds
+
+
+    def compute_and_log_confusion(self, all_labels: list, all_preds: list, epoch: int) -> None:
+        """Generate confusion matrix figure, save it, and log to wandb if available."""
+        try:
+            fig = plot_confusion_matrix(
+                all_labels, all_preds, labels=getattr(self.config, "label_names", None)
+            )
+            out_dir = Path(self.config.viz_output_dir)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            out_path = out_dir / f"confusion_epoch_{epoch:03d}.png"
+            fig.savefig(out_path)
+            plt.close(fig)
+
+            try:
+                import wandb
+
+                if wandb.run is not None:
+                    wandb.log({"confusion_matrix": wandb.Image(str(out_path)), "epoch": epoch + 1})
+            except Exception:
+                pass
+        except Exception:
+            pass
 
 
     @torch.no_grad()
