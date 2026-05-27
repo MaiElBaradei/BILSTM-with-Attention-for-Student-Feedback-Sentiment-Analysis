@@ -1,0 +1,25 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+*.ipynb
+.ipynb_checkpoints
+
+# Runtime outputs — mounted as volumes, not baked into the image
+checkpoints/
+visualizations/
+data/
+embeddings_files/
+
+# Dev / CI files
+.env
+.env.*
+docker-compose.yml
+Dockerfile
+*.md

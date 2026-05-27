@@ -1,0 +1,26 @@
+# Setup (run once on the compute node):
+#   sudo mkdir -p /opt/bilstm-checkpoints
+#   sudo cp checkpoints/best.pt checkpoints/preprocessor.pkl /opt/bilstm-checkpoints/
+#   sudo chmod -R 755 /opt/bilstm-checkpoints
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: bilstm-checkpoints-pv
+spec:
+  capacity:
+    storage: 200Mi
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /opt/bilstm-checkpoints
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - cn01

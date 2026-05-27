@@ -1,0 +1,55 @@
+services:
+
+  # Local W&B server 
+  # http://localhost:8080
+  wandb-server:
+    image: wandb/local:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - wandb_data:/vol
+    environment:
+      - LOCAL_RESTORE=true
+
+  # Training container
+  trainer:
+    build: .
+    depends_on:
+      - wandb-server
+    volumes:
+      - ./data:/app/data                       # dataset CSV + downloaded files
+      - ./checkpoints:/app/checkpoints         # saved model checkpoints
+      - ./visualizations:/app/visualizations   # attention PNGs, history plots
+      - ./embeddings:/app/embeddings           # GloVe zip cache
+    environment:
+      # Point wandb at the local server instead of cloud
+      - WANDB_BASE_URL=http://wandb-server:8080
+      - WANDB_API_KEY=${WANDB_API_KEY}
+    # GPU pass-through (requires nvidia-container-toolkit on the host)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Default run — override via: docker compose run trainer --embedding_type glove ...
+    command: []
+
+  # Inference server
+  # UI:      http://localhost:8000
+  # Swagger: http://localhost:8000/docs
+  # Weights are baked into the image — rebuild after retraining:
+  #   docker compose build serve
+  serve:
+    build:
+      context: .
+      dockerfile: Dockerfile.serve
+    ports:
+      - "8000:8000"
+    environment:
+      - CHECKPOINT_DIR=/app/checkpoints
+
+volumes:
+  wandb_data:
